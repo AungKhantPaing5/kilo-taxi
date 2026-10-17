@@ -227,4 +227,4 @@ This repository is the standalone Docker version. It uses its own database and c
 
 ### Place import network troubleshooting
 
-Debian package downloads in the importer use HTTPS port 443 (including `.sources` and legacy `.list` files). Failed package-index updates stop immediately instead of continuing to a misleading package-not-found error. If a previous import failed, update the code and rerun `bash scripts/setup-places.sh`; the downloaded Myanmar PBF is reused and the existing app database is preserved.
+The importer now uses the full official `python:3.12` image, which already contains native libraries needed by osmium. It does not run apt-get or connect to deb.debian.org. Docker Hub and PyPI access are still required. The first image download is larger than the slim image. If a previous import failed, update the code and rerun `bash scripts/setup-places.sh`; the downloaded Myanmar PBF is reused and the existing app database is preserved.
