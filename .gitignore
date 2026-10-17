@@ -6,3 +6,5 @@ backups/
 node_modules/
 *.db*
 *.tar.gz
+
+routing-data/

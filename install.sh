@@ -14,3 +14,9 @@ docker compose config --quiet
 docker compose up -d --build
 echo 'Kilo Taxi is running on http://localhost:8080 (loopback only).'
 echo 'For VPS: configure HTTPS reverse proxy and set PUBLIC_URL in .env. See README.md.'
+
+if [[ "${1:-}" == '--routing' ]]; then
+  bash scripts/setup-routing.sh
+else
+  echo 'For billing-free automatic road-distance calculation, run: bash scripts/setup-routing.sh'
+fi

@@ -9,6 +9,9 @@ services:
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Run bash install.sh to create .env}
       PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8080}
+      OSRM_URL: ${OSRM_URL:-http://osrm:5000}
+      TILE_URL: ${TILE_URL:-}
+      TILE_ATTRIBUTION: ${TILE_ATTRIBUTION:-© OpenStreetMap contributors}
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
     volumes:
       - taxi_data:/app/data

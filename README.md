@@ -1,6 +1,6 @@
 # Kilo Taxi — Docker
 
-Google Maps နဲ့ လမ်းအကွာအဝေးယူပြီး taxi ခတွက်ပေးသော မြန်မာဘာသာ website ဖြစ်ပါတယ်။ Username/password login, Admin panel, User/Role/Permission, ခရီးမှတ်တမ်း၊ နေ့စွဲ/ယာဉ်မောင်းအလိုက် ရှာဖွေခြင်းနဲ့ ပြေစာထုတ်ခြင်း ပါဝင်ပါတယ်။ ChatGPT account မလိုပါ။
+OpenStreetMap + ကိုယ်ပိုင် OSRM ကနေ ကားလမ်းအကွာအဝေးယူပြီး taxi ခတွက်ပေးသော မြန်မာဘာသာ website ဖြစ်ပါတယ်။ Username/password login, Admin panel, User/Role/Permission, ခရီးမှတ်တမ်း၊ နေ့စွဲ/ယာဉ်မောင်းအလိုက် ရှာဖွေခြင်းနဲ့ ပြေစာထုတ်ခြင်း ပါဝင်ပါတယ်။ ChatGPT account မလိုပါ။
 
 ## 1. Docker ဖြင့် စတင်ရန်
 
@@ -53,27 +53,66 @@ HTTPS stack သုံးထားပါက compose files နှစ်ခုလ�
 
 Public HTTP ကို production login အတွက် မသုံးပါနှင့်။ Phone GPS သည် HTTPS (သို့မဟုတ် localhost) လိုအပ်ပါတယ်။ LAN-only test အတွက်သာ `.env` တွင် `BIND_ADDRESS=0.0.0.0`, `PUBLIC_URL=http://SERVER_IP:8080` သတ်မှတ်ပြီး firewall ကို စမ်းသပ်မည့် network အတွက်သာ ဖွင့်ပါ။
 
-## 3. Google Maps ကို user အားလုံးအတွက် ချိတ်ရန်
+## 3. Google Billing မလိုဘဲ ကားလမ်း km အလိုအလျောက်တွက်ရန်
 
-1. Google Cloud project တွင် billing ချိတ်ပါ။
-2. **Maps JavaScript API** နှင့် **Routes API** ကို enable လုပ်ပါ။
-3. Browser API key ဖန်တီးပါ။ Application restriction ကို **Websites / HTTP referrers** သတ်မှတ်ပါ။
-4. ကိုယ့် URL ကို ခွင့်ပြုပါ: `https://taxi.your-domain.example/*`။ Local testing အတွက် `http://localhost:8080/*` ကိုသာ ထပ်ထည့်ပါ။
-5. API restriction တွင် အထက်ပါ API နှစ်ခုကိုသာ ခွင့်ပြုပါ။
-6. Login → **Admin → Google Maps** တွင် key ကို သိမ်းပါ။ Calculator ကို reload လုပ်ပါ။
-7. စတင်မည့်နေရာနှင့် သွားမည့်နေရာထည့်ပြီး **ခရီးခတွက်မယ်** ကိုနှိပ်ပါ။ Google road distance နှင့် route ကိုပြပေးပါမယ်။
+ဒီ version က OpenStreetMap မြေပုံနဲ့ ကိုယ်ပိုင် OSRM routing container ကို သုံးပါတယ်။ Google API key / Google Billing မလိုပါ။ Routing server ရဲ့ CPU/RAM/disk နဲ့ မြေပုံ tiles အတွက် အင်တာနက်တော့ လိုပါတယ်။
 
-Alternative: `.env` ထဲ `GOOGLE_MAPS_API_KEY=...` ထည့်ပြီး container recreate လုပ်နိုင်ပါတယ်။ Admin တွင်သိမ်းထားသော key က env key ထက် ဦးစားပေးပါတယ်။
+ရှိပြီးသား install ကို update လုပ်ရန် (account နှင့် ခရီးမှတ်တမ်း မဖျက်ပါ):
 
-Google Maps browser key ကို browser က ဖတ်နိုင်ပါတယ်။ Referrer/API restrictions မဖြစ်မနေ သတ်မှတ်ပါ။ Key ကို GitHub ပေါ်မတင်ပါနှင့်။ Google API အသုံးပြုခနှင့် quotas သည် VPS fee နဲ့ သီးခြားဖြစ်ပါတယ်။ Key မရှိသေးပါက manual ကီလိုထည့်တွက်နိုင်ပါတယ်။
+```bash
+git pull --ff-only
+bash scripts/setup-routing.sh
+```
 
-Official guide: https://developers.google.com/maps/documentation/javascript/routes/start
+HTTPS stack သုံးထားလျှင်:
+
+```bash
+git pull --ff-only
+bash scripts/setup-routing.sh --https
+```
+
+ပထမအကြိမ်တွင် Myanmar OpenStreetMap data ကို Geofabrik မှ download လုပ်ပြီး OSRM `extract → partition → customize` လုပ်ပေးပါတယ်။ အချိန်အတော်ကြာနိုင်ပြီး RAM GB အများအပြား လိုနိုင်ပါတယ်။ Engine image digest ကို `routing-data/.image` တွင် မှတ်ထားပြီး data နဲ့ version တူသော engine ကိုပဲ run ပေးပါတယ်။ နောက် run မှာ `.ready` ရှိလျှင် preprocessing ကို ပြန်မလုပ်ပါ။
+
+မြေပုံ data source: https://download.geofabrik.de/asia/myanmar.html
+OSRM documentation: https://github.com/Project-OSRM/osrm-backend
+
+### Admin က 1 km ဈေးသတ်မှတ်ရန်
+
+1. Login → **Admin → ခရီးခသတ်မှတ်ရန်** ကိုဝင်ပါ။
+2. **1 km ဈေး** ထည့်ပါ။ ဥပမာ `1200` ကျပ်။
+3. km × ဈေးနှုန်းသာတွက်လိုလျှင် စတင်ခ `0`၊ စောင့်ခ `0`၊ အပြည့်ယူ `1` ထားပါ။
+4. **ဈေးနှုန်းသိမ်းရန်** ကိုနှိပ်ပါ။ User က ကိုယ်တိုင် km ဈေးပြင်မရပါ။
+
+ဥပမာ: လမ်းအကွာအဝေး **12.5 km × 1200 = 15000 ကျပ်**။
+
+### User အသုံးပြုရန်
+
+1. Website ကို `Ctrl + Shift + R` ဖြင့် reload လုပ်ပါ။
+2. **မြေပုံမှ စမှတ်ရွေး** နှိပ်ပြီး စမည့်နေရာကို မြေပုံပေါ်နှိပ်ပါ။ လက်ရှိတည်နေရာကိုလည်း သုံးနိုင်ပါတယ်။
+3. **မြေပုံမှ ဆုံးမှတ်ရွေး** နှိပ်ပြီး သွားမည့်နေရာကိုနှိပ်ပါ။
+4. နှစ်နေရာစလုံးရွေးပြီးနောက် ကားလမ်းအကွာအဝေး၊ ခရီးချိန်နဲ့ Admin ဈေးအလိုက် ခရီးခ အလိုအလျောက်ပြပါတယ်။
+5. **ခရီးသိမ်းရန်** နှိပ်လျှင် server တွင်မှတ်တမ်းသိမ်းပါတယ်။
+
+နေရာအမည်ရှာဖွေခြင်း မပါသေးပါ။ မြေပုံမှရွေးခြင်း သို့မဟုတ် `latitude, longitude` ထည့်ခြင်းကို သုံးပါ။ Public geocoding/demo routing server ကို User 400 အတွက် မသုံးထားပါ။ Google version မှ ခရီးမှတ်တမ်းအဟောင်းများ ဆက်ရှိပါတယ်။
+
+### Map tiles နှင့် User 400
+
+Default tile layer `tile.openstreetmap.org` သည် သေးငယ်သော စမ်းသပ်မှုအတွက်သာ စတင်ထားခြင်းဖြစ်ပြီး unlimited production hosting မဟုတ်ပါ။ User 400 အတွက် production tile provider သို့မဟုတ် ကိုယ်ပိုင် tile server ကို သတ်မှတ်ရပါမယ်။ Provider ကို `.env` မှပြောင်းနိုင်ပါတယ်:
+
+```dotenv
+TILE_URL=https://YOUR_TILE_HOST/{z}/{x}/{y}.png
+TILE_ATTRIBUTION=YOUR_PROVIDER_ATTRIBUTION
+```
+
+Provider attribution လည်း ဆက်ပြထားပါတယ်။ Tile downloading/prefetching/offline bulk caching မလုပ်ထားပါ။ OSM policy: https://operations.osmfoundation.org/policies/tiles/
+
+Routing သည် ကိုယ်ပိုင် container မှ တွက်ခြင်းဖြစ်ပြီး OSRM public demo server ကို fallback မလုပ်ပါ။ Myanmar data အပြင်ဘက် သို့မဟုတ် OSM တွင် ကားလမ်းမဆက်သည့်နေရာများအတွက် route မရနိုင်ပါ။ Road distance သည် မြေပုံဒေတာအပေါ်မူတည်ပြီး လက်ရှိပိတ်ထားသောလမ်း/real-time traffic ကို အာမမခံပါ။
 
 ## 4. Admin / User
 
 - Admin က username/password ဖြင့် user ဖန်တီးနိုင်ပါတယ်။ Password အနည်းဆုံး 12 လုံးလိုပါတယ်။
 - Roles: Driver, Manager, Admin. Role သည် preset ဖြစ်ပြီး အောက်ပါ permission ကို တစ်ခုချင်းပြင်နိုင်ပါတယ်။
-- `calculate`, `save_trips`, `view_own`, `view_all`, `manage_users`, `edit_rates`, `manage_maps`
+- `calculate`, `save_trips`, `view_own`, `view_all`, `manage_users`, `manage_rates` (`edit_rates`/`manage_maps` သည် version အဟောင်း compatibility အတွက်သာ ကျန်ရှိပါတယ်)
 - Driver က ကိုယ့် server မှတ်တမ်းကိုသာ ကြည့်နိုင်ပါတယ်။
 - Admin က ယာဉ်မောင်းအမည်/username၊ မြန်မာရက်စွဲအလိုက် အားလုံး၏ခရီးကို ရှာနိုင်ပါတယ်။
 - User account ကို ပိတ်/ပြန်ဖွင့်နိုင်ပြီး password reset လုပ်နိုင်ပါတယ်။ ပိတ်ခြင်း သို့မဟုတ် reset လုပ်ခြင်းက sessions များကို ဖျက်ပါတယ်။
@@ -84,9 +123,9 @@ Official guide: https://developers.google.com/maps/documentation/javascript/rout
 
 ခရီးခ = စတင်ခ + (km × တစ်ကီလိုခ) + (စောင့်မိနစ် × တစ်မိနစ်ခ) + အပိုခ၊ ထို့နောက် ရွေးထားသောယူနစ်အလိုက် အပေါ်သို့အပြည့်ယူပါတယ်။
 
-Default နမူနာ: စတင်ခ 1500 ကျပ်၊ 1 km 1000 ကျပ်၊ စောင့်ခ 1 မိနစ် 100 ကျပ်၊ အပြည့်ယူခ 100 ကျပ်။ `edit_rates` မရှိသော user ပေးပို့သည့် rate ကို server က လက်မခံဘဲ default ဖြင့်တွက်ပါတယ်။ အပိုခကို driver က ထည့်နိုင်ပါတယ်။
+Default နမူနာ: စတင်ခ 1500 ကျပ်၊ 1 km 1000 ကျပ်၊ စောင့်ခ 1 မိနစ် 100 ကျပ်၊ အပြည့်ယူခ 100 ကျပ်။ User ပေးပို့သည့် rate ကို server က လက်မခံဘဲ Admin သိမ်းထားသော ဈေးနှုန်းဖြင့် ပြန်တွက်ပါတယ်။ အပိုခကို driver က ထည့်နိုင်ပါတယ်။
 
-ခရီးအကွာအဝေးသည် manual သို့မဟုတ် Google Maps browser result ဖြစ်ပါတယ်။ Server က ခရီးခပြန်တွက်သော်လည်း browser မှပေးသော km ကို GPS meter reading အဖြစ် အတည်ပြုမထားပါ။
+Automatic mode မှာ OSRM ကပေးသော km ကို server quote ထဲမှာ သိမ်းပြီး save လုပ်ချိန် browser ပေးသော km ကို လက်မခံပါ။ Quote သက်တမ်း 15 မိနစ်ဖြစ်ပြီး Admin က ဈေးပြောင်းထားလျှင် ပြန်တွက်ရပါမယ်။ Manual mode မှာတော့ ကိုယ်တိုင်ထည့်သော km ဖြစ်ပါတယ်။ မည်သည့် mode မှ GPS တိုက်ရိုက် taxi meter မဟုတ်ပါ။
 
 SQLite WAL database ကို Docker named volume `taxi_data` တွင် သိမ်းပါတယ်။ Restart/update လုပ်လည်း data မပျောက်ပါ။ `docker compose down -v` လုပ်ပါက database volume ပျောက်ပါမယ်။
 
@@ -100,7 +139,7 @@ bash scripts/backup.sh
 
 ```bash
 git pull --ff-only
-docker compose up -d --build
+bash scripts/setup-routing.sh
 docker compose logs --tail=100 taxi
 ```
 
@@ -108,19 +147,18 @@ HTTPS compose အသုံးပြုသူ:
 
 ```bash
 git pull --ff-only
-docker compose -f compose.yaml -f compose.https.yaml up -d --build
+bash scripts/setup-routing.sh --https
 ```
 
 ## 7. Resources and verification
 
-VPS စတင်အသုံးပြုရန် **2 vCPU / 2 GB RAM / 20 GB SSD** ကို ခန့်မှန်းထားပါတယ်။ Container ကို 768 MB RAM / 1.5 CPU limit သတ်မှတ်ထားပြီး HTTPS proxy ကို 256 MB သတ်မှတ်ထားပါတယ်။ လိုအပ်လျှင် limits ပြင်နိုင်ပါတယ်။ ဒါတွေဟာ measured 400-user capacity guarantee မဟုတ်ပါ။
-
+Web app သီးသန့် အရင် 2 vCPU / 2 GB ခန့်မှန်းချက်ထက် ကိုယ်ပိုင် routing အတွက် RAM ပိုလိုပါတယ်။ **4 vCPU / 8 GB RAM / 30 GB SSD** ကို Myanmar preprocessing + app + routing အတွက် စတင်ခန့်မှန်းထားပါတယ်။ Preprocessing/runtime resources ကို အမှန်တကယ် map size နှင့် load ဖြင့် ထပ်တိုင်းတာရပါမယ်။ 400 users capacity ကို အာမမခံပါ။ Web container 768 MB / 1.5 CPU၊ OSRM container 3 GB / 2 CPU သတ်မှတ်ထားပါတယ်။ Preprocessing သည် runtime RAM limit ကိုမသုံးဘဲ Docker host resources ကိုသုံးပါတယ်။
 - Zero npm production dependencies, Node.js 24 built-in HTTP/SQLite/crypto.
-- Indexed records, 50 trips per page, browser-side Google Maps rendering.
+- Indexed records, 50 trips per page, browser-side Leaflet map rendering.
 - Hashed passwords, HttpOnly session cookies, CSRF origin check, login throttling, role permissions enforced server-side.
 - Local API integration tests cover login, user creation, permission denial, own/all history, server fare, duplicate saves, invalid input, Maps settings, deactivation, password change, login rate limiting.
 - Test also issues 400 concurrent authenticated `/me` requests using one session. This does not simulate 400 independent drivers using Maps and does not prove production capacity.
-- GitHub Actions runs API tests, Docker build, container startup and restart/persistence checks.
+- GitHub Actions runs API tests, Compose validation, Docker build, startup/restart/persistence tests, and a real OSRM test using a tiny synthetic road network. Full Myanmar dataset preprocessing is not run in CI.
 
 Run tests with Node.js 24:
 

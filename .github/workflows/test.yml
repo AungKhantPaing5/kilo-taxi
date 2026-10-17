@@ -4,13 +4,20 @@ permissions:
   contents: read
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: '24'
       - run: npm test
+      - name: Validate Compose configurations
+        env:
+          ADMIN_PASSWORD: ci-only-test-password-123
+          DOMAIN: taxi.example.com
+        run: |
+          docker compose config --quiet
+          docker compose -f compose.yaml -f compose.routing.yaml -f compose.https.yaml config --quiet
       - run: docker build -t kilo-taxi:test .
       - name: Docker startup and persistence smoke test
         shell: bash
@@ -30,3 +37,5 @@ jobs:
             sleep 1
           done
           curl --fail --cookie /tmp/taxi-cookie http://localhost:18080/api/taxi/me
+      - name: Real OSRM road-distance and tariff smoke test
+        run: bash scripts/ci-routing.sh

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="kilo-taxi-test">
+  <bounds minlat="16.77" minlon="96.15" maxlat="16.79" maxlon="96.17"/>
+  <node id="1" lat="16.7700" lon="96.1500" version="1"/>
+  <node id="2" lat="16.7800" lon="96.1500" version="1"/>
+  <node id="3" lat="16.7800" lon="96.1600" version="1"/>
+  <node id="4" lat="16.7900" lon="96.1600" version="1"/>
+  <way id="1" version="1"><nd ref="1"/><nd ref="2"/><nd ref="3"/><nd ref="4"/><tag k="highway" v="residential"/><tag k="name" v="Synthetic test road"/></way>
+</osm>
