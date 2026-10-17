@@ -53,6 +53,34 @@ HTTPS stack သုံးထားပါက compose files နှစ်ခုလ�
 
 Public HTTP ကို production login အတွက် မသုံးပါနှင့်။ Phone GPS သည် HTTPS (သို့မဟုတ် localhost) လိုအပ်ပါတယ်။ LAN-only test အတွက်သာ `.env` တွင် `BIND_ADDRESS=0.0.0.0`, `PUBLIC_URL=http://SERVER_IP:8080` သတ်မှတ်ပြီး firewall ကို စမ်းသပ်မည့် network အတွက်သာ ဖွင့်ပါ။
 
+## တိုက်ရိုက် GPS ကားမီတာ (Waiting ON → Driving km)
+
+ဒီ mode မှာ destination ရွေးထားစရာ၊ Google Billing/API key သို့မဟုတ် OSRM data မလိုပါ။ ဖုန်း GPS ကနေ ရွေ့လျားမှုကို ခန့်မှန်းပြီး မီတာတွက်ပါတယ်။
+
+ရှိပြီးသား install update:
+
+```bash
+git pull --ff-only
+docker compose up -d --build
+```
+
+HTTPS stack သုံးထားပါက သုံးနေသော compose flags များကို ဆက်သုံးပါ။ Account/မှတ်တမ်း volume မဖျက်ပါ။
+
+1. Admin → ခရီးခသတ်မှတ်ရန်မှာ **1 km ဈေး** နဲ့ **စောင့်ခ / မိနစ်** သတ်မှတ်ပါ။ Waiting ကို စက္ကန့်အလိုက်တွက်ပေးပါတယ်။ ဥပမာ 1 မိနစ် 120 ကျပ်ဆို 1 စက္ကန့် 2 ကျပ်။
+2. Website > **တိုက်ရိုက်ကားမီတာ** (`/meter`) ကိုဖွင့်ပါ။
+3. **မီတာ ON** နှိပ်တာနဲ့ waiting timer စပါတယ်။ Location ကို Allow လုပ်ပါ။
+4. ကားရွေ့လျားမှုကို GPS က အတည်ပြုရင် distance fare စုပါတယ်။ ထိုရွေ့လျားမှု interval အတွက် waiting နဲ့ distance နှစ်ခါမကောက်ပါ။
+5. ကားရပ်နေမှုကို 10 စက္ကန့်ခန့်အတည်ပြုပြီး waiting ပြန်စပါတယ်။ **ခေတ္တရပ်ရန်** နှိပ်ထားပါက နှစ်မျိုးစလုံး မတိုးပါ။
+6. **ခရီးဆုံး · သိမ်းမယ်** နှိပ်ပါ။ Admin history မှာ source `တိုက်ရိုက် GPS မီတာ`၊ km၊ waiting seconds နဲ့ ခရီးခ တွေ့ရပါမယ်။
+
+**တွက်ပုံ**: စတင်ခ + GPS km × 1 km ဈေး + waiting seconds / 60 × တစ်မိနစ်စောင့်ခ။ နောက်ဆုံးမှာ Admin ရွေးထားသောယူနစ်အလိုက် အပေါ်သို့အပြည့်ယူပါတယ်။ Ride စချိန်က tariff ကို snapshot သိမ်းပြီး ခရီးပြီးသည်အထိ သုံးပါတယ်။ Admin ဈေးပြောင်းလျှင် နောက်ခရီးမှ စသုံးပါတယ်။
+
+**ကန့်သတ်ချက်များ**: Foreground-browser GPS ခန့်မှန်းစနစ်သာ ဖြစ်ပါတယ်။ HTTPS (သို့မဟုတ် localhost) နှင့် Location permission လိုပါတယ်။ Screen ဖွင့်ထားပြီး စာမျက်နှာကို အပေါ်မှာထားရပါမယ်။ Background/screen-off မှာ GPS ဆက်ရမည်ဟု အာမမခံပါ။ App က visible အချိန် screen wake lock ကြိုးစားယူပေမယ့် device က ငြင်းနိုင်ပါတယ်။ နောက်ခံရောက်ရင် pause ပို့ဖို့ ကြိုးစားပြီး connection/GPS 30 စက္ကန့်ကျော် gap ကို pause လုပ်ပါတယ်။ Missing distance မဖြည့်ပါ။
+
+GPS accuracy 50 m ထက်ဆိုးသော fix၊ 200 km/h ထက်မြန်သော jump ကို distance မပေါင်းပါ။ Driving ~5 km/h၊ stopped ~2 km/h thresholds နှင့် drift filter သုံးထားသောကြောင့် low-speed traffic၊ အဆောက်အဦးကြား၊ tunnel၊ ကွေ့လမ်းတွေမှာ distance လွဲ/လျော့နိုင်ပါတယ်။ GPS spoofing ကို မကာကွယ်နိုင်ပါ။ Certified commercial taximeter မဟုတ်ပါ။ အမှန်တကယ်မောင်းနှင်ပြီး distance/wait transition စစ်ဆေးရန် ကျန်ရှိပါတယ်။ Screen-off အလုပ်လုပ်ရန်လိုလျှင် native Android/iOS foreground/background location implementation လိုပါတယ်။
+
+Server DB မှာ meter state/time/distance/tariff/နောက်ဆုံး GPS fix ကို သိမ်းပါတယ်။ Full GPS route trace ကို မသိမ်းပါ။ 5 စက္ကန့် heartbeat သည် user 400 အတွက် ~80 requests/sec ဖြစ်သဖြင့် အမှန်တကယ် host ပေါ် load test လုပ်ရပါမယ်။ အရင် 400 `/me` request test သည် ဒီ workload ကို အတည်မပြုပါ။
+
 ## 3. Google Billing မလိုဘဲ ကားလမ်း km အလိုအလျောက်တွက်ရန်
 
 ဒီ version က OpenStreetMap မြေပုံနဲ့ ကိုယ်ပိုင် OSRM routing container ကို သုံးပါတယ်။ Google API key / Google Billing မလိုပါ။ Routing server ရဲ့ CPU/RAM/disk နဲ့ မြေပုံ tiles အတွက် အင်တာနက်တော့ လိုပါတယ်။
