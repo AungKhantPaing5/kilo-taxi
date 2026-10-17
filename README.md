@@ -79,7 +79,19 @@ HTTPS stack သုံးထားပါက သုံးနေသော compose f
 
 GPS accuracy 50 m ထက်ဆိုးသော fix၊ 200 km/h ထက်မြန်သော jump ကို distance မပေါင်းပါ။ Driving ~5 km/h၊ stopped ~2 km/h thresholds နှင့် drift filter သုံးထားသောကြောင့် low-speed traffic၊ အဆောက်အဦးကြား၊ tunnel၊ ကွေ့လမ်းတွေမှာ distance လွဲ/လျော့နိုင်ပါတယ်။ GPS spoofing ကို မကာကွယ်နိုင်ပါ။ Certified commercial taximeter မဟုတ်ပါ။ အမှန်တကယ်မောင်းနှင်ပြီး distance/wait transition စစ်ဆေးရန် ကျန်ရှိပါတယ်။ Screen-off အလုပ်လုပ်ရန်လိုလျှင် native Android/iOS foreground/background location implementation လိုပါတယ်။
 
-Server DB မှာ meter state/time/distance/tariff/နောက်ဆုံး GPS fix ကို သိမ်းပါတယ်။ Full GPS route trace ကို မသိမ်းပါ။ 5 စက္ကန့် heartbeat သည် user 400 အတွက် ~80 requests/sec ဖြစ်သဖြင့် အမှန်တကယ် host ပေါ် load test လုပ်ရပါမယ်။ အရင် 400 `/me` request test သည် ဒီ workload ကို အတည်မပြုပါ။
+Server DB မှာ meter state/time/distance/tariff/နောက်ဆုံး GPS fix ကို သိမ်းပါတယ်။ Update အသစ်မှစပြီး GPS ရရှိသော လမ်းကြောင်း points ကို ခရီးအလိုက် သိမ်းပါတယ်။ 5 စက္ကန့် heartbeat သည် user 400 အတွက် ~80 requests/sec ဖြစ်သဖြင့် အမှန်တကယ် host ပေါ် load test လုပ်ရပါမယ်။ အရင် 400 `/me` request test သည် ဒီ workload ကို အတည်မပြုပါ။
+
+## History မှာ လမ်းကြောင်းပြန်ကြည့်ရန်
+
+- **ခရီးမှတ်တမ်း** (`/history`) → **လမ်းကြောင်းနှင့် ခရီးအသေးစိတ်ကြည့်ရန်** ကိုနှိပ်ပါ။
+- Admin history table မှာလည်း **မြေပုံကြည့်ရန်** ပါပါတယ်။
+- Live GPS ခရီးအသစ်များမှာ ရရှိသော GPS points ကို server တွင် သိမ်းပြီး actual sampled trace အဖြစ်ပြပါတယ်။ ခရီးဆုံးမှ History ထဲဝင်ပါတယ်။
+- User က ကိုယ့်ခရီးကိုသာ ဖတ်နိုင်ပြီး `view_all` ရှိသူက တခြားသူ့ခရီးကိုလည်း ကြည့်နိုင်ပါတယ်။
+- Pause/resume၊ GPS jump/gap အပိုင်းတွေကို မဆက်ဘဲ segment ခွဲပြပါတယ်။ Missing GPS ကို ခန့်မှန်းမဖြည့်ပါ။
+- OSRM စီစဉ်တွက်ချက်ခရီးကို **စီစဉ်တွက်ချက်ခဲ့သော လမ်းကြောင်း** ဟု သီးခြားပြပါတယ်။ တကယ်မောင်းခဲ့သည်ဟု မဖော်ပြပါ။
+- Manual ခရီး၊ update မတိုင်မီ history နဲ့ GPS မရသောခရီးတွင် **လမ်းကြောင်းမသိမ်းထားပါ** ဟု ပြပါတယ်။ အတိတ် GPS ကို ပြန်တည်ဆောက်မရပါ။
+- GPS accuracy ≤50 m ရရှိသော samples ထဲမှ ရွေ့လျားမှု ≥5 m သို့မဟုတ် 30 စက္ကန့်ခြား points ကို သိမ်းပါတယ်။ Trip တစ်ခုအတွက် point limit 20,000 ဖြစ်ပြီး limit ရောက်လျှင် အပြည့်မဖြစ်နိုင်ကြောင်း ပြပါတယ်။
+- Precise trip locations ကို database/backup ထဲတွင် သိမ်းသဖြင့် သက်ဆိုင်သူများကိုသာ `view_all` ပေးပြီး backup ကို private ထားပါ။ Map tiles ကိုကြည့်သော browser မှ tile provider သို့ map viewport requests ထွက်ပါတယ်။
 
 ## 3. Google Billing မလိုဘဲ ကားလမ်း km အလိုအလျောက်တွက်ရန်
 
