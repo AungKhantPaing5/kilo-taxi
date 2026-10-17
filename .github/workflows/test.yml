@@ -1,0 +1,32 @@
+name: Test and Docker build
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm test
+      - run: docker build -t kilo-taxi:test .
+      - name: Docker startup and persistence smoke test
+        shell: bash
+        run: |
+          docker volume create taxi-ci-data
+          docker run -d --name taxi-ci -p 127.0.0.1:18080:8080 -v taxi-ci-data:/app/data -e ADMIN_PASSWORD=ci-only-test-password-123 -e PUBLIC_URL=http://localhost:18080 kilo-taxi:test
+          trap 'docker logs taxi-ci; docker rm -f taxi-ci; docker volume rm taxi-ci-data' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://localhost:18080/healthz; then break; fi
+            sleep 1
+          done
+          curl --fail http://localhost:18080/healthz
+          curl --fail --silent -H 'Origin: http://localhost:18080' -H 'Content-Type: application/json' -d '{"username":"admin","password":"ci-only-test-password-123"}' -c /tmp/taxi-cookie http://localhost:18080/api/taxi/login
+          docker restart taxi-ci
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://localhost:18080/healthz; then break; fi
+            sleep 1
+          done
+          curl --fail --cookie /tmp/taxi-cookie http://localhost:18080/api/taxi/me
