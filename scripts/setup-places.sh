@@ -14,7 +14,7 @@ for attempt in $(seq 1 30); do
   sleep 1
 done
 echo 'Building local Myanmar place index. Several minutes and GB of RAM may be needed.'
-docker run --rm -v "$PWD/routing-data:/data" -v "$PWD/scripts/build-places.py:/build-places.py:ro" python:3.12-slim sh -c 'apt-get update && apt-get install -y --no-install-recommends libexpat1 libbz2-1.0 liblzma5 libstdc++6 zlib1g && pip install --no-cache-dir "osmium>=4,<5" && python /build-places.py /data/myanmar-latest.osm.pbf /data/places.jsonl'
+docker run --rm -v "$PWD/routing-data:/data" -v "$PWD/scripts/build-places.py:/build-places.py:ro" -v "$PWD/scripts/install-place-deps.sh:/install-place-deps.sh:ro" python:3.12-slim sh -c 'sh /install-place-deps.sh && python /build-places.py /data/myanmar-latest.osm.pbf /data/places.jsonl'
 docker compose cp routing-data/places.jsonl taxi:/tmp/places.jsonl
 docker compose exec -T taxi node /app/import-places.mjs /tmp/places.jsonl
 docker compose exec -T taxi node -e "require('node:fs').unlinkSync('/tmp/places.jsonl')"
