@@ -228,3 +228,20 @@ This repository is the standalone Docker version. It uses its own database and c
 ### Place import network troubleshooting
 
 The importer now uses the full official `python:3.12` image, which already contains native libraries needed by osmium. It does not run apt-get or connect to deb.debian.org. Docker Hub and PyPI access are still required. The first image download is larger than the slim image. If a previous import failed, update the code and rerun `bash scripts/setup-places.sh`; the downloaded Myanmar PBF is reused and the existing app database is preserved.
+
+
+## Final deployment / update
+
+```bash
+git pull --ff-only
+bash scripts/setup-places.sh
+bash scripts/setup-routing.sh
+```
+
+Existing accounts, fares and trips remain in the Docker volume. Never use `down -v` when keeping data. Place import streams into the read-only app and preserves custom places. Myanmar preprocessing needs several GB of RAM; the full regional dataset has not been benchmarked here.
+
+Set `PUBLIC_URL` in `.env` to the exact browser origin (scheme, hostname and port). For local port 8090, use `HTTP_PORT=8090` and `PUBLIC_URL=http://localhost:8090`. Recreate taxi after editing `.env`. Use HTTPS for phone GPS access.
+
+Map images download directly from the configured `TILE_URL` to each browser. Missing tiles do not mean OSRM is unavailable. Loading/error text is shown on the calculator; change `TILE_URL` and `TILE_ATTRIBUTION` to a provider you are authorized to use if necessary. No tile speed guarantee or 400-user load test is claimed. Google route/place APIs require a separately configured billing-enabled project; they are not silently enabled in this OSM release.
+
+Planning capacity: start with 4 vCPU / 8 GB RAM for app + Myanmar OSRM, and monitor actual usage; preprocessing may need more memory. This is an initial sizing estimate, not a verified 400-concurrent-driver capacity. GPS heartbeat every 5 seconds means roughly 80 heartbeat requests/second for 400 active rides, plus other traffic.
