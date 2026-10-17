@@ -39,3 +39,5 @@ jobs:
           curl --fail --cookie /tmp/taxi-cookie http://localhost:18080/api/taxi/me
       - name: Real OSRM road-distance and tariff smoke test
         run: bash scripts/ci-routing.sh
+      - name: Local OSM place-index build and import smoke test
+        run: bash scripts/ci-places.sh

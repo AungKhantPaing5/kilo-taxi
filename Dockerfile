@@ -3,6 +3,7 @@ WORKDIR /app
 ENV NODE_ENV=production DATA_DIR=/app/data PORT=8080
 COPY --chown=node:node package.json server.mjs meter.mjs ./
 COPY --chown=node:node public ./public
+COPY --chown=node:node scripts/import-places.mjs ./import-places.mjs
 RUN mkdir -p /app/data && chown node:node /app/data
 USER node
 EXPOSE 8080

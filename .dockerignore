@@ -8,3 +8,6 @@ tests
 *.zip
 
 routing-data/
+
+__pycache__/
+*.pyc

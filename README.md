@@ -81,6 +81,23 @@ GPS accuracy 50 m ထက်ဆိုးသော fix၊ 200 km/h ထက်မြ
 
 Server DB မှာ meter state/time/distance/tariff/နောက်ဆုံး GPS fix ကို သိမ်းပါတယ်။ Update အသစ်မှစပြီး GPS ရရှိသော လမ်းကြောင်း points ကို ခရီးအလိုက် သိမ်းပါတယ်။ 5 စက္ကန့် heartbeat သည် user 400 အတွက် ~80 requests/sec ဖြစ်သဖြင့် အမှန်တကယ် host ပေါ် load test လုပ်ရပါမယ်။ အရင် 400 `/me` request test သည် ဒီ workload ကို အတည်မပြုပါ။
 
+## နေရာအမည်ဖြည့်ပြီး မြေပုံပေါ်ပြရန်
+
+Local database ကနေပဲ ရှာသောကြောင့် Google Billing/API key နဲ့ public Nominatim service မလိုပါ။ စာရိုက်ပြီး ခဏရပ်လိုက်ရင် ရလဒ်ထွက်ပါတယ်။ တစ်ခုတည်းဆို marker/map အလိုအလျောက်ရွေးပေးပြီး အမည်တူများရှိရင် ရလဒ်ထဲက နေရာမှန်ကို ရွေးပါ။ Enter သို့မဟုတ် **နေရာရှာရန်** ကိုလည်း သုံးနိုင်ပါတယ်။ နေရာရွေးပြီး စမှတ်/ဆုံးမှတ်နှစ်ခုရှိရင် OSRM route ပြန်တွက်ပေးပါတယ်။
+
+အသုံးများသောနေရာ နည်းနည်းကိုသာ ထည့်လိုလျှင် **Admin → ရှာဖွေနိုင်သောနေရာ ထည့်ရန်** မှ အမည်၊ latitude၊ longitude ထည့်ပါ။
+
+Myanmar OSM နေရာအမည်များ import လုပ်ရန်:
+
+```bash
+git pull --ff-only
+bash scripts/setup-places.sh
+```
+
+Script က ရှိပြီးသား Myanmar PBF ကို ပြန်သုံးပါတယ်။ မရှိလျှင် Geofabrik မှ download လုပ်ပြီး named nodes/ways index ထုတ်ပေးပါတယ်။ Python/osmium image download၊ PBF preprocessing အတွက် network/time/RAM လိုပါတယ်။ **4 vCPU / 8 GB RAM** ကို စတင်ခန့်မှန်းထားပါတယ်။ နေရာအနည်းငယ်ကို Admin ထည့်ရုံဆို preprocessing မလိုပါ။ Import သည် DB ကို transaction ဖြင့် atomic replace လုပ်ပြီး custom နေရာများကို ဆက်ထိန်းထားပါတယ်။ Import လုပ်စဉ် write lock ရှိနိုင်လို့ အသုံးနည်းချိန်တွင်လုပ်ပါ။
+
+အမည် index သည် OSM တွင်ပါသော names/မြန်မာအမည်/English aliases များကိုသာ သိနိုင်ပါတယ်။ Named ways အတွက် coordinate သည် node coordinates ၏ ပျမ်းမျှ center ဖြစ်ပြီး အဝင်တံခါး/ကားလမ်းပေါ်တည်နေရာအတိအကျ မဖြစ်နိုင်ပါ။ Map ပေါ်တွင် ပြန်စစ်ပြီး လိုသလိုရွေးပြင်နိုင်ပါတယ်။ အမည်နဲ့ ရှာဖွေမှုကို public geocoding endpoint သို့ မပို့ပါ။
+
 ## History မှာ လမ်းကြောင်းပြန်ကြည့်ရန်
 
 - **ခရီးမှတ်တမ်း** (`/history`) → **လမ်းကြောင်းနှင့် ခရီးအသေးစိတ်ကြည့်ရန်** ကိုနှိပ်ပါ။
@@ -133,7 +150,7 @@ OSRM documentation: https://github.com/Project-OSRM/osrm-backend
 4. နှစ်နေရာစလုံးရွေးပြီးနောက် ကားလမ်းအကွာအဝေး၊ ခရီးချိန်နဲ့ Admin ဈေးအလိုက် ခရီးခ အလိုအလျောက်ပြပါတယ်။
 5. **ခရီးသိမ်းရန်** နှိပ်လျှင် server တွင်မှတ်တမ်းသိမ်းပါတယ်။
 
-နေရာအမည်ရှာဖွေခြင်း မပါသေးပါ။ မြေပုံမှရွေးခြင်း သို့မဟုတ် `latitude, longitude` ထည့်ခြင်းကို သုံးပါ။ Public geocoding/demo routing server ကို User 400 အတွက် မသုံးထားပါ။ Google version မှ ခရီးမှတ်တမ်းအဟောင်းများ ဆက်ရှိပါတယ်။
+နေရာအမည်ရှာနိုင်ရန် local place index သို့မဟုတ် Admin ထည့်ထားသောနေရာများကို သုံးပါ။ မြေပုံမှရွေးခြင်း သို့မဟုတ် `latitude, longitude` ထည့်ခြင်းလည်း ဆက်သုံးနိုင်ပါတယ်။ Public geocoding/demo routing server ကို User 400 အတွက် မသုံးထားပါ။ Google version မှ ခရီးမှတ်တမ်းအဟောင်းများ ဆက်ရှိပါတယ်။
 
 ### Map tiles နှင့် User 400
 
