@@ -245,3 +245,7 @@ Set `PUBLIC_URL` in `.env` to the exact browser origin (scheme, hostname and por
 Map images download directly from the configured `TILE_URL` to each browser. Missing tiles do not mean OSRM is unavailable. Loading/error text is shown on the calculator; change `TILE_URL` and `TILE_ATTRIBUTION` to a provider you are authorized to use if necessary. No tile speed guarantee or 400-user load test is claimed. Google route/place APIs require a separately configured billing-enabled project; they are not silently enabled in this OSM release.
 
 Planning capacity: start with 4 vCPU / 8 GB RAM for app + Myanmar OSRM, and monitor actual usage; preprocessing may need more memory. This is an initial sizing estimate, not a verified 400-concurrent-driver capacity. GPS heartbeat every 5 seconds means roughly 80 heartbeat requests/second for 400 active rides, plus other traffic.
+
+
+## Driver and vehicle details
+Driver accounts require a driver license number and vehicle registration number when created/edited. Admin and manager accounts can leave these blank. Existing accounts are preserved by an additive database migration; fill their details from Admin → User edit. Admin trip history shows driver name/username, license, vehicle, km, waiting minutes/seconds, waiting fee, total and a route detail link. New saved trips snapshot driver details (GPS meters at start); later edits do not rewrite those records. Older trips without snapshots display the current profile with a notice. Missing historical GPS traces cannot be reconstructed.
