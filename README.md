@@ -167,7 +167,7 @@ Routing သည် ကိုယ်ပိုင် container မှ တွက်�
 
 ## 4. Admin / User
 
-- Admin က username/password ဖြင့် user ဖန်တီးနိုင်ပါတယ်။ Password အနည်းဆုံး 12 လုံးလိုပါတယ်။
+- Admin က username/password ဖြင့် user ဖန်တီးနိုင်ပါတယ်။ Password အနည်းဆုံး 6 လုံးလိုပါတယ်။
 - Roles: Driver, Manager, Admin. Role သည် preset ဖြစ်ပြီး အောက်ပါ permission ကို တစ်ခုချင်းပြင်နိုင်ပါတယ်။
 - `calculate`, `save_trips`, `view_own`, `view_all`, `manage_users`, `manage_rates` (`edit_rates`/`manage_maps` သည် version အဟောင်း compatibility အတွက်သာ ကျန်ရှိပါတယ်)
 - Driver က ကိုယ့် server မှတ်တမ်းကိုသာ ကြည့်နိုင်ပါတယ်။
