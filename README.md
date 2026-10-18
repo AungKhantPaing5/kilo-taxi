@@ -249,3 +249,7 @@ Planning capacity: start with 4 vCPU / 8 GB RAM for app + Myanmar OSRM, and moni
 
 ## Driver and vehicle details
 Driver accounts require a driver license number and vehicle registration number when created/edited. Admin and manager accounts can leave these blank. Existing accounts are preserved by an additive database migration; fill their details from Admin → User edit. Admin trip history shows driver name/username, license, vehicle, km, waiting minutes/seconds, waiting fee, total and a route detail link. New saved trips snapshot driver details (GPS meters at start); later edits do not rewrite those records. Older trips without snapshots display the current profile with a notice. Missing historical GPS traces cannot be reconstructed.
+
+
+## Remove a user
+Admin → User များ → ဖျက်ရန် opens a confirmation. Requires manage_users; own/owner accounts cannot be removed. Finish an active meter first. Removal revokes sessions, blocks login and removes the user from the directory. The account record and reserved username remain for trip history and audit; this is not permanent personal-data erasure. Trips, GPS routes and saved driver profiles remain available to authorized history viewers.
