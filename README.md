@@ -75,7 +75,7 @@ HTTPS stack သုံးထားပါက သုံးနေသော compose f
 
 **တွက်ပုံ**: စတင်ခ + GPS km × 1 km ဈေး + max(0, floor(waiting seconds) − 600) / 60 × တစ်မိနစ်စောင့်ခ။ နောက်ဆုံးမှာ Admin ရွေးထားသောယူနစ်အလိုက် အပေါ်သို့အပြည့်ယူပါတယ်။ Ride စချိန်က tariff ကို snapshot သိမ်းပြီး ခရီးပြီးသည်အထိ သုံးပါတယ်။ Admin ဈေးပြောင်းလျှင် နောက်ခရီးမှ စသုံးပါတယ်။
 
-**ကန့်သတ်ချက်များ**: Foreground-browser GPS ခန့်မှန်းစနစ်သာ ဖြစ်ပါတယ်။ HTTPS (သို့မဟုတ် localhost) နှင့် Location permission လိုပါတယ်။ Screen ဖွင့်ထားပြီး စာမျက်နှာကို အပေါ်မှာထားရပါမယ်။ Background/screen-off မှာ GPS ဆက်ရမည်ဟု အာမမခံပါ။ App က visible အချိန် screen wake lock ကြိုးစားယူပေမယ့် device က ငြင်းနိုင်ပါတယ်။ နောက်ခံရောက်ရင် pause ပို့ဖို့ ကြိုးစားပြီး connection/GPS 30 စက္ကန့်ကျော် gap ကို pause လုပ်ပါတယ်။ Missing distance မဖြည့်ပါ။
+**ကန့်သတ်ချက်များ**: Foreground-browser GPS ခန့်မှန်းစနစ်သာ ဖြစ်ပါတယ်။ HTTPS (သို့မဟုတ် localhost) နှင့် Location permission လိုပါတယ်။ Screen ဖွင့်ထားပြီး စာမျက်နှာကို အပေါ်မှာထားရပါမယ်။ Background/screen-off မှာ GPS ဆက်ရမည်ဟု အာမမခံပါ။ App က visible အချိန် screen wake lock ကြိုးစားယူပေမယ့် device က ငြင်းနိုင်ပါတယ်။ နောက်ခံရောက်ချိန် GPS ကို မမှတ်နိုင်ပါ။ Connection/GPS 30 စက္ကန့်ကျော် gap မှာ distance ကို ရပ်ထားပြီး GPS အသစ်ပြန်ရလျှင် အလိုအလျောက်ဆက်မှတ်ပါတယ်။ ကိုယ်တိုင် Pause နှိပ်ထားလျှင် ပြန်စရန် နှိပ်ရပါတယ်။ Missing distance မဖြည့်ပါ။
 
 GPS accuracy 50 m ထက်ဆိုးသော fix၊ 200 km/h ထက်မြန်သော jump ကို distance မပေါင်းပါ။ Driving ~5 km/h၊ stopped ~2 km/h thresholds နှင့် drift filter သုံးထားသောကြောင့် low-speed traffic၊ အဆောက်အဦးကြား၊ tunnel၊ ကွေ့လမ်းတွေမှာ distance လွဲ/လျော့နိုင်ပါတယ်။ GPS spoofing ကို မကာကွယ်နိုင်ပါ။ Certified commercial taximeter မဟုတ်ပါ။ အမှန်တကယ်မောင်းနှင်ပြီး distance/wait transition စစ်ဆေးရန် ကျန်ရှိပါတယ်။ Screen-off အလုပ်လုပ်ရန်လိုလျှင် native Android/iOS foreground/background location implementation လိုပါတယ်။
 
@@ -253,3 +253,6 @@ Driver accounts require a driver license number and vehicle registration number 
 
 ## Remove a user
 Admin → User များ → ဖျက်ရန် opens a confirmation. Requires manage_users; own/owner accounts cannot be removed. Finish an active meter first. Removal revokes sessions, blocks login and removes the user from the directory. The account record and reserved username remain for trip history and audit; this is not permanent personal-data erasure. Trips, GPS routes and saved driver profiles remain available to authorized history viewers.
+
+
+GPS recovery: automatic signal-loss pauses keep foreground location watchers and heartbeat running. A fresh acceptable fix resumes with a new baseline, without adding distance across the gap. Browser background interruptions no longer issue a manual pause; return to the visible page to restart sensors. Manual Pause still requires Resume. Waiting accrual during a request gap remains capped at 30 seconds; unobserved time is not backfilled. A pending request times out after 12 seconds so it cannot block heartbeat indefinitely. Real iPhone/Android foreground driving validation remains necessary.

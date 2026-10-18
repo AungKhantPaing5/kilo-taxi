@@ -6,21 +6,21 @@ export function metersBetween(a,b){const rad=x=>x*Math.PI/180,R=6371000,dLat=rad
 export function validFix(f,now){return f&&[f.lat,f.lng,f.accuracy,f.timestamp].every(Number.isFinite)&&Math.abs(f.lat)<=90&&Math.abs(f.lng)<=180&&f.accuracy>=0&&f.accuracy<=50&&Math.abs(now-f.timestamp)<=15000&&(f.speed==null||Number.isFinite(f.speed)&&f.speed>=0&&f.speed<=60)}
 export function startMeter(tariff,now){return {state:'driving',waitingEnabled:false,meters:0,waitingSeconds:0,updated:now,started:now,tariff,lastFix:null,lastGood:now,stopSince:null,pendingMeters:0,pendingSeconds:0,note:'Trip started; turn Waiting ON to start the waiting counter'}}
 export function advanceMeter(input,event,now){const m=structuredClone(input);if(m.state==='finished')return m;const dt=Math.max(0,(now-m.updated)/1000);if(m.state!=='paused'&&waitingOn(m))m.waitingSeconds+=Math.min(dt,30);const gap=now-m.updated>MAX_GAP_MS;
-if(gap){m.state='paused';m.lastFix=null;m.pendingMeters=0;m.pendingSeconds=0;m.note='Connection/GPS gap: meter paused; missing distance was not estimated'}
+if(gap&&m.state!=='paused'){m.autoResume=true;m.state='paused';m.lastFix=null;m.pendingMeters=0;m.pendingSeconds=0;m.note='Connection/GPS gap: meter paused; missing distance was not estimated'}
 m.updated=now;
-if(event.type==='pause'){m.state='paused';m.lastFix=null;m.pendingMeters=0;m.pendingSeconds=0;m.note='Meter paused';return m}
-if(event.type==='resume'){m.state=waitingOn(m)?'waiting':'driving';m.lastFix=null;m.lastGood=now;m.pendingMeters=0;m.pendingSeconds=0;m.stopSince=null;m.note='Meter resumed; previous waiting balance retained';return m}
+if(event.type==='pause'){m.autoResume=false;m.state='paused';m.lastFix=null;m.pendingMeters=0;m.pendingSeconds=0;m.note='Meter paused';return m}
+if(event.type==='resume'){m.autoResume=false;m.state=waitingOn(m)?'waiting':'driving';m.lastFix=null;m.lastGood=now;m.pendingMeters=0;m.pendingSeconds=0;m.stopSince=null;m.note='Meter resumed; previous waiting balance retained';return m}
 if(event.type==='finish'){m.state='finished';m.note='Trip finished';return m}
-if(m.state==='paused')return m;
+if(m.state==='paused'){if(!m.autoResume||event.type!=='heartbeat'||(!validFix(event.fix,now)&&!(waitingOn(m)&&!gap)))return m;m.autoResume=false;m.state=waitingOn(m)?'waiting':'driving';m.lastFix=null;m.lastGood=now;m.stopSince=null;m.note='Signal restored; distance resumes from a fresh GPS fix'}
 if(event.type==='waiting_on'||event.type==='waiting_off'){m.waitingEnabled=event.type==='waiting_on';m.state=m.waitingEnabled?'waiting':'driving';m.pendingMeters=0;m.pendingSeconds=0;m.lastFix=null;m.lastGood=now;m.note=m.waitingEnabled?'Waiting ON: first 600 seconds free':'Waiting OFF: counter stopped; balance retained';return m}
 const f=event.fix;
-if(!validFix(f,now)){if(!waitingOn(m)&&now-m.lastGood>MAX_GAP_MS){m.state='paused';m.lastFix=null;m.note='GPS unavailable or inaccurate: meter paused'}else m.note=waitingOn(m)?'Waiting ON; GPS not accurate enough for distance':'Waiting for an accurate GPS fix (≤50 m)';return m}
+if(!validFix(f,now)){if(!waitingOn(m)&&now-m.lastGood>MAX_GAP_MS){m.autoResume=true;m.state='paused';m.lastFix=null;m.note='GPS unavailable or inaccurate: meter paused'}else m.note=waitingOn(m)?'Waiting ON; GPS not accurate enough for distance':'Waiting for an accurate GPS fix (≤50 m)';return m}
 // Duplicate positions must not refresh lastGood: GPS needs genuinely new samples.
 if(m.lastFix&&f.timestamp<=m.lastFix.timestamp)return m;
 m.lastGood=now;
 if(!m.lastFix){m.lastFix=f;m.note='GPS ready';return m}
 const old=m.lastFix,seconds=(f.timestamp-old.timestamp)/1000;if(seconds<=0)return m;
-if(seconds>30){m.lastFix=f;if(!waitingOn(m)){m.state='paused';m.note='GPS sample gap: meter paused'}else m.note='Waiting continues; GPS distance gap ignored';return m}
+if(seconds>30){m.lastFix=f;if(!waitingOn(m)){m.lastFix=null;m.note='GPS sample gap ignored; fresh baseline set';m.lastFix=f}else m.note='Waiting continues; GPS distance gap ignored';return m}
 const distance=metersBetween(old,f),derived=distance/seconds;
 if(derived>55.56){m.lastFix=null;m.note='Unrealistic GPS jump ignored';return m}
 const measuredSpeed=f.speed==null?derived:f.speed,threshold=Math.max(8,(old.accuracy+f.accuracy)*0.6),moving=measuredSpeed>=1.4&&distance>=threshold;
