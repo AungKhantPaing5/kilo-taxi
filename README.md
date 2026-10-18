@@ -256,3 +256,6 @@ Admin → User များ → ဖျက်ရန် opens a confirmation. Requ
 
 
 GPS recovery: automatic signal-loss pauses keep foreground location watchers and heartbeat running. A fresh acceptable fix resumes with a new baseline, without adding distance across the gap. Browser background interruptions no longer issue a manual pause; return to the visible page to restart sensors. Manual Pause still requires Resume. Waiting accrual during a request gap remains capped at 30 seconds; unobserved time is not backfilled. A pending request times out after 12 seconds so it cannot block heartbeat indefinitely. Real iPhone/Android foreground driving validation remains necessary.
+
+
+The live meter includes an explicit GPS permission/reconnect button. Start asks for a fresh location before creating the ride; denial/timeout does not start a new ride. Permission-denied errors show settings guidance. Previously blocked permissions require the user to change browser/OS settings; a website cannot force a repeat prompt. Waiting-only operation remains possible without a GPS fix.
