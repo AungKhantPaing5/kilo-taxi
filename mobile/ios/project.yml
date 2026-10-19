@@ -1,0 +1,31 @@
+name: KiloTaxi
+options:
+  bundleIdPrefix: uk.payapi
+  deploymentTarget:
+    iOS: '16.0'
+settings:
+  base:
+    SWIFT_VERSION: '5.0'
+    MARKETING_VERSION: '1.0.0'
+    CURRENT_PROJECT_VERSION: 1
+    TARGETED_DEVICE_FAMILY: '1,2'
+    GENERATE_INFOPLIST_FILE: NO
+    CODE_SIGN_STYLE: Automatic
+targets:
+  KiloTaxi:
+    type: application
+    platform: iOS
+    sources: [KiloTaxi]
+    info:
+      path: KiloTaxi/Info.plist
+      properties:
+        CFBundleDisplayName: Kilo Taxi
+        UILaunchScreen: {}
+        UIBackgroundModes: [location]
+        NSLocationWhenInUseUsageDescription: ခရီးအကွာအဝေးနှင့် လမ်းကြောင်းမှတ်ရန် GPS အသုံးပြုပါမယ်။
+        NSLocationAlwaysAndWhenInUseUsageDescription: ခရီးစနေချိန် screen ပိတ်ထားလည်း GPS အကွာအဝေးနှင့် လမ်းကြောင်း ဆက်မှတ်ရန် အသုံးပြုပါမယ်။ ခရီးဆုံးလျှင် GPS ရပ်ပါမယ်။
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: uk.payapi.kilotaxi
+    scheme:
+      testTargets: []

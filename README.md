@@ -259,3 +259,7 @@ GPS recovery: automatic signal-loss pauses keep foreground location watchers and
 
 
 The live meter includes an explicit GPS permission/reconnect button. Start asks for a fresh location before creating the ride; denial/timeout does not start a new ride. Permission-denied errors show settings guidance. Previously blocked permissions require the user to change browser/OS settings; a website cannot force a repeat prompt. Waiting-only operation remains possible without a GPS fix.
+
+
+## Native Android and iPhone apps
+See [mobile/README.md](mobile/README.md) for the native driver clients, background GPS behavior, sideload APK build and Apple signing instructions. GitHub Actions → Native mobile builds produces a signed Android **test APK** and an **unsigned iPhone app ZIP**. The iPhone ZIP is not installable until signed; no Apple credentials or provisioning material are included.

@@ -1,0 +1,54 @@
+name: Native mobile builds
+on:
+  push:
+    paths: ['mobile/**', '.github/workflows/mobile.yml']
+  pull_request:
+    paths: ['mobile/**', '.github/workflows/mobile.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  android:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build sideload test APK and run lint
+        working-directory: mobile/android
+        run: gradle --no-daemon :app:assembleDebug :app:lintDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kilo-taxi-android-test-apk
+          path: mobile/android/app/build/outputs/apk/debug/app-debug.apk
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-lint-report
+          path: mobile/android/app/build/reports/lint-results-debug.html
+          if-no-files-found: ignore
+  ios:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v6
+      - name: Generate Xcode project
+        working-directory: mobile/ios
+        run: |
+          brew install xcodegen
+          xcodegen generate
+      - name: Build unsigned iPhone app
+        working-directory: mobile/ios
+        run: xcodebuild -project KiloTaxi.xcodeproj -scheme KiloTaxi -configuration Debug -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+      - name: Package unsigned app for signing (not installable as-is)
+        working-directory: mobile/ios
+        run: ditto -c -k --keepParent build/Build/Products/Debug-iphoneos/KiloTaxi.app KiloTaxi-unsigned.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kilo-taxi-ios-unsigned-needs-signing
+          path: mobile/ios/KiloTaxi-unsigned.zip

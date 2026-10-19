@@ -11,3 +11,15 @@ routing-data/
 
 __pycache__/
 *.pyc
+# Native build output and local signing material
+mobile/**/.gradle/
+mobile/**/build/
+mobile/**/local.properties
+mobile/**/*.xcodeproj/
+mobile/**/*.xcworkspace/
+mobile/**/*.jks
+mobile/**/*.keystore
+mobile/**/*.p12
+mobile/**/*.mobileprovision
+mobile/**/*.zip
+mobile/**/*.apk
