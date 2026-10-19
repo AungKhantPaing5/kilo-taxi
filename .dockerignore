@@ -11,3 +11,5 @@ routing-data/
 
 __pycache__/
 *.pyc
+
+mobile/

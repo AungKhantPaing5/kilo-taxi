@@ -16,6 +16,7 @@ final class Engine {
     static volatile String status = "GPS tracking မစရသေးပါ။";
     static volatile String accuracy = "—";
     static volatile boolean tracking = false;
+    static volatile long receivedAt = 0;
     static SharedPreferences prefs;
     static void init(Context context) { if(prefs == null) prefs=context.getApplicationContext().getSharedPreferences("session",Context.MODE_PRIVATE); }
     static String origin() { return prefs.getString("origin","https://thai1.payapi.uk"); }
@@ -41,7 +42,7 @@ final class Engine {
             return data;
         } finally {connection.disconnect();}
     }
-    static void apply(JSONObject data) {meter=data.optJSONObject("meter");}
+    static void apply(JSONObject data) {meter=data.optJSONObject("meter");receivedAt=System.currentTimeMillis();}
     static boolean active(){return meter!=null&&!"finished".equals(meter.optString("state"));}
     static boolean shouldTrack(){return active()&&(!"paused".equals(meter.optString("state"))||meter.optBoolean("autoResume"));}
     static class AuthError extends Exception {AuthError(){super("Session သက်တမ်းကုန်ပါပြီ။ Login ပြန်ဝင်ပါ။");}}

@@ -30,6 +30,8 @@ private enum SecureSession {
     @Published var accuracy = "—"
     @Published var meter: [String: Any] = [:]
     @Published var authorized = false
+    @Published var clock = Date()
+    private var receivedAt = Date()
     private var cookie = SecureSession.read()
     private let gps = CLLocationManager()
     private var fix: CLLocation?
@@ -46,12 +48,13 @@ private enum SecureSession {
         super.init(); gps.delegate = self; gps.desiredAccuracy = kCLLocationAccuracyBestForNavigation
         gps.distanceFilter = kCLDistanceFilterNone; gps.activityType = .automotiveNavigation
         gps.pausesLocationUpdatesAutomatically = false; gps.showsBackgroundLocationIndicator = true
-        timer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in Task { @MainActor in await self?.heartbeat() } }
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in Task { @MainActor in self?.clock = Date(); await self?.heartbeat() } }
     }
     var active: Bool { !meter.isEmpty && state != "finished" }
     var state: String { meter["state"] as? String ?? "OFF" }
     var waiting: Bool { meter["waitingEnabled"] as? Bool ?? false }
     var shouldTrack: Bool { active && (state != "paused" || meter["autoResume"] as? Bool == true) }
+    var displayedWaitingSeconds: Int { Int(number("waitingSeconds") + (tracking && waiting && state != "paused" ? min(30, max(0, clock.timeIntervalSince(receivedAt))) : 0)) }
     func number(_ key: String) -> Double { (meter[key] as? NSNumber)?.doubleValue ?? 0 }
     private func failure(_ message: String) -> NSError { NSError(domain: "KiloTaxi", code: 1, userInfo: [NSLocalizedDescriptionKey: message]) }
     private func validatedOrigin(_ input: String) throws -> String {
@@ -71,7 +74,7 @@ private enum SecureSession {
         if let header = http.value(forHTTPHeaderField: "Set-Cookie") { cookie = String(header.split(separator: ";", maxSplits: 1)[0]); SecureSession.save(cookie) }
         return data
     }
-    private func apply(_ data: [String: Any]) { meter = data["meter"] as? [String: Any] ?? [:]; if !shouldTrack { stopGPS() } }
+    private func apply(_ data: [String: Any]) { receivedAt = Date(); meter = data["meter"] as? [String: Any] ?? [:]; if !shouldTrack { stopGPS() } }
     func login() async {
         guard !busy else { return }; busy = true; defer { busy = false }
         do { origin = try validatedOrigin(origin); cookie = ""; SecureSession.save("")
@@ -110,7 +113,7 @@ private enum SecureSession {
         } catch { status = error.localizedDescription }
     }
     func heartbeat() async {
-        guard tracking, shouldTrack, !busy, Date().timeIntervalSince(lastSync) >= 4, let id = meter["id"] as? String else { return }
+        guard tracking, shouldTrack, !busy, Date().timeIntervalSince(lastSync) >= 5, let id = meter["id"] as? String else { return }
         busy = true; lastSync = Date()
         let token = UIApplication.shared.beginBackgroundTask(withName: "MeterSync", expirationHandler: nil)
         defer { busy = false; if token != .invalid { UIApplication.shared.endBackgroundTask(token) } }
@@ -151,7 +154,7 @@ struct DriverView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             Text(String(format: "%.3f km", model.number("km"))).font(.system(size: 42, weight: .bold))
                             Text(String(format: "%.0f ကျပ်", model.number("total"))).font(.largeTitle.bold())
-                            Text("စောင့်ချိန် \(Int(model.number("waitingSeconds"))) စက္ကန့်")
+                            Text("စောင့်ချိန် \(model.displayedWaitingSeconds) စက္ကန့်")
                             Text(model.state.uppercased()).font(.caption.bold())
                         }.padding(24).frame(maxWidth: .infinity, alignment: .leading).background(Color(red: 0.08, green: 0.26, blue: 0.20)).foregroundStyle(.white).clipShape(RoundedRectangle(cornerRadius: 22))
                         Text("ခရီးစချိန် GPS ကို screen ပိတ်ထားချိန်ပါ သုံးပါမယ်။ Waiting ပထမ 10 မိနစ် အခမဲ့။ ခရီးဆုံး / Pause မှာ GPS ရပ်ပါမယ်။")
