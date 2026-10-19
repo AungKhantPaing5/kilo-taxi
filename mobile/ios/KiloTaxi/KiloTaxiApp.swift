@@ -18,6 +18,10 @@ private enum SecureSession {
     }
 }
 
+private final class NoRedirects: NSObject, URLSessionTaskDelegate {
+    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) { completionHandler(nil) }
+}
+
 @MainActor final class DriverModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var origin = UserDefaults.standard.string(forKey: "server") ?? "https://thai1.payapi.uk"
     @Published var username = ""
@@ -42,7 +46,7 @@ private enum SecureSession {
         config.httpShouldSetCookies = false
         config.timeoutIntervalForRequest = 12
         config.timeoutIntervalForResource = 18
-        return URLSession(configuration: config)
+        return URLSession(configuration: config, delegate: NoRedirects(), delegateQueue: nil)
     }()
     override init() {
         super.init(); gps.delegate = self; gps.desiredAccuracy = kCLLocationAccuracyBestForNavigation
@@ -77,7 +81,7 @@ private enum SecureSession {
     private func apply(_ data: [String: Any]) { receivedAt = Date(); meter = data["meter"] as? [String: Any] ?? [:]; if !shouldTrack { stopGPS() } }
     func login() async {
         guard !busy else { return }; busy = true; defer { busy = false }
-        do { origin = try validatedOrigin(origin); cookie = ""; SecureSession.save("")
+        do { origin = try validatedOrigin(origin); UserDefaults.standard.set(origin, forKey: "server"); cookie = ""; SecureSession.save("")
             let user = try await api("login", ["username": username, "password": password]); password = ""
             guard let permissions = user["permissions"] as? [String], permissions.contains("calculate"), permissions.contains("save_trips") else { throw failure("ဒီ account မှာ မီတာသုံးခွင့် မရှိပါ။") }
             UserDefaults.standard.set(origin, forKey: "server"); userName = user["name"] as? String ?? username
