@@ -16,7 +16,7 @@ import static org.junit.Assert.*;
 @RunWith(AndroidJUnit4.class)
 public class ScreenTest {
     private Object field(MainActivity a,String name) throws Exception {var f=MainActivity.class.getDeclaredField(name);f.setAccessible(true);return f.get(a);}
-    private void capture(String name) throws Exception {var i=InstrumentationRegistry.getInstrumentation();i.waitForIdleSync();Bitmap image=i.getUiAutomation().takeScreenshot();assertNotNull(image);File out=new File(i.getTargetContext().getExternalFilesDir(null),name+".png");try(var stream=new FileOutputStream(out)){assertTrue(image.compress(Bitmap.CompressFormat.PNG,100,stream));}image.recycle();}
+    private void capture(String name) throws Exception {var i=InstrumentationRegistry.getInstrumentation();i.waitForIdleSync();Bitmap image=i.getUiAutomation().takeScreenshot();assertNotNull(image);File out=new File(i.getTargetContext().getExternalFilesDir(null),name+".png");try(var stream=new FileOutputStream(out)){assertTrue(image.compress(Bitmap.CompressFormat.PNG,100,stream));}image.recycle();try(var descriptor=i.getUiAutomation().executeShellCommand("mkdir -p /sdcard/Download/kilo-ui && cp "+out.getAbsolutePath()+" /sdcard/Download/kilo-ui/"+name+".png");var input=new java.io.FileInputStream(descriptor.getFileDescriptor())){byte[] buffer=new byte[1024];while(input.read(buffer)!=-1){}}}
     @Test public void loginAndMeterScreens() throws Exception {
         var i=InstrumentationRegistry.getInstrumentation();
         i.getTargetContext().getSharedPreferences("session",0).edit().clear().commit();

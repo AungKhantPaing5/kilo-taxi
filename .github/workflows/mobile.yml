@@ -63,7 +63,7 @@ jobs:
           script: |
             cd mobile/android && gradle --no-daemon :app:connectedDebugAndroidTest
             mkdir -p ui-screenshots
-            adb pull /sdcard/Android/data/uk.payapi.kilotaxi/files/. ui-screenshots/
+            adb pull /sdcard/Download/kilo-ui/. ui-screenshots/
       - uses: actions/upload-artifact@v4
         if: always()
         with:
